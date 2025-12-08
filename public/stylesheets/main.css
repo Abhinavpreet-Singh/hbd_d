@@ -34,10 +34,7 @@ body {
 }
 
 .window {
-  background-image: url("../../imgs/midnights-bg.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
+  background: black;
   height: 65%;
   width: 100%;
   position: relative;
@@ -281,4 +278,119 @@ p {
 
 .text-nav-btn:active {
   transform: scale(0.95);
+}
+
+/* Photo Carousel */
+.photo-carousel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+}
+
+.photo-card {
+  background: black;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  text-align: center;
+}
+
+.photo-card img {
+  max-width: 600px;
+  max-height: 450px;
+  width: auto;
+  height: auto;
+  border-radius: 10px;
+  display: block;
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.photo-counter {
+  color: #ffffff;
+  font-size: 16px;
+  margin-top: 15px;
+  font-weight: 500;
+} /* Secret Message Section */
+.secret-section {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 100;
+}
+
+.secret-btn {
+  background: black;
+  color: #d4af37;
+  border: 2px solid #d4af37;
+  padding: 18px 40px;
+  font-size: 20px;
+  font-weight: 700;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5);
+  transition: all 0.3s ease;
+}
+
+.secret-btn:hover {
+  background: #d4af37;
+  color: black;
+  transform: scale(1.05);
+  box-shadow: 0 12px 40px rgba(212, 175, 55, 0.7);
+}
+
+.secret-message {
+  background: black;
+  border: 3px solid #d4af37;
+  border-radius: 20px;
+  padding: 40px 60px;
+  margin-top: 30px;
+  animation: fadeIn 1s ease;
+}
+
+.secret-message p {
+  color: #d4af37;
+  font-size: 24px;
+  margin: 15px 0;
+  line-height: 1.6;
+}
+
+.secret-message .highlight {
+  font-size: 32px;
+  font-weight: 700;
+  margin-top: 25px;
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+}
+
+/* Revisit Section */
+.revisit-section {
+  position: fixed;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
+.revisit-btn {
+  background: #d4af37;
+  color: black;
+  border: 2px solid #f0d475;
+  padding: 15px 35px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 6px 25px rgba(212, 175, 55, 0.4);
+  transition: all 0.3s ease;
+}
+
+.revisit-btn:hover {
+  background: #f0d475;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 35px rgba(212, 175, 55, 0.6);
 }

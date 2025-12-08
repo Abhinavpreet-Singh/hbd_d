@@ -570,12 +570,13 @@ function getCenterPos(balloonId) {
  */
 function startEnd() {
   setTimeout(function () {
-    theEnd = true;
-    turnOffLights();
-    lightsFadeOut(balloonBorder);
-    sound.pause();
-    windowDiv.style.visibility = "hidden";
-  }, 3000);
+    // Hide text controls and message
+    textNavControls.style.display = "none";
+    msgParent.style.display = "none";
+
+    // Show photo carousel
+    showPhotoCarousel();
+  }, 2000);
 }
 
 /**
@@ -640,19 +641,28 @@ let isTextPlaying = false;
 let canAdvanceText = false;
 
 function updateArrowVisibility() {
-  // Show/hide back arrow based on position
-  if (currentTextIndex > 0) {
-    textBackArrow.style.display = "flex";
+  // Always show both arrows in all modes
+  textBackArrow.style.display = "flex";
+  textNextArrow.style.display = "flex";
+
+  // Optional: Disable back arrow on first item in each mode
+  if (isPhotoMode && currentPhotoIndex === 0) {
+    textBackArrow.style.opacity = "0.3";
+    textBackArrow.style.pointerEvents = "none";
+  } else if (isJokeMode && currentJokeIndex === 0) {
+    textBackArrow.style.opacity = "0.3";
+    textBackArrow.style.pointerEvents = "none";
+  } else if (!isPhotoMode && !isJokeMode && currentTextIndex === 0) {
+    textBackArrow.style.opacity = "0.3";
+    textBackArrow.style.pointerEvents = "none";
   } else {
-    textBackArrow.style.display = "none";
+    textBackArrow.style.opacity = "1";
+    textBackArrow.style.pointerEvents = "auto";
   }
 
-  // Show/hide next arrow based on position
-  if (currentTextIndex >= msgText.length - 1) {
-    textNextArrow.style.display = "none";
-  } else {
-    textNextArrow.style.display = "flex";
-  }
+  // Always enable next arrow
+  textNextArrow.style.opacity = "1";
+  textNextArrow.style.pointerEvents = "auto";
 }
 
 function goToNextText() {
@@ -691,13 +701,168 @@ function goToPreviousText() {
   }
 }
 
-// Click handlers for arrow navigation
-textNextArrow.addEventListener("click", goToNextText);
-textBackArrow.addEventListener("click", goToPreviousText);
-
-// Click anywhere to advance (optional)
-msgParent.addEventListener("click", function (e) {
-  if (!e.target.closest(".text-nav-controls")) {
+// Click handlers for arrow navigation (shared between text, photos, and jokes)
+textNextArrow.addEventListener("click", function () {
+  if (isPhotoMode) {
+    goToNextPhoto();
+  } else if (isJokeMode) {
+    goToNextJoke();
+  } else {
     goToNextText();
   }
+});
+
+textBackArrow.addEventListener("click", function () {
+  if (isPhotoMode) {
+    goToPreviousPhoto();
+  } else if (isJokeMode) {
+    goToPreviousJoke();
+  } else {
+    goToPreviousText();
+  }
+});
+
+// Click anywhere to advance (optional) - only for initial text mode
+msgParent.addEventListener("click", function (e) {
+  if (
+    !e.target.closest(".text-nav-controls") &&
+    !isPhotoMode &&
+    !isJokeMode &&
+    isTextPlaying
+  ) {
+    goToNextText();
+  }
+});
+
+// Photo Carousel Logic
+let currentPhotoIndex = 0;
+let isPhotoMode = false;
+let hasShownPhotos = false; // Flag to prevent showing photos multiple times
+const photoFiles = ["d1.jpg", "d2.jpg", "d3.png", "d4.jpg", "d5.jpg"];
+const photoCarousel = document.getElementById("photoCarousel");
+const carouselImage = document.getElementById("carouselImage");
+const photoCounter = document.getElementById("photoCounter");
+
+function showPhotoCarousel() {
+  if (hasShownPhotos) return; // Prevent showing photos again
+  hasShownPhotos = true;
+  isPhotoMode = true;
+  photoCarousel.style.display = "block";
+  fadeIn(photoCarousel, 20, "block");
+  textNavControls.style.display = "flex"; // Reuse navigation arrows
+  currentPhotoIndex = 0; // Reset to first photo
+  updatePhoto();
+  updateArrowVisibility(); // Update arrow visibility for photo mode
+}
+
+function updatePhoto() {
+  carouselImage.src = `imgs/${photoFiles[currentPhotoIndex]}`;
+  photoCounter.textContent = `${currentPhotoIndex + 1} / ${photoFiles.length}`;
+  updateArrowVisibility(); // Update arrows after photo change
+}
+
+function goToNextPhoto() {
+  if (currentPhotoIndex < photoFiles.length - 1) {
+    currentPhotoIndex++;
+    updatePhoto();
+  } else {
+    // Last photo reached, show joke texts
+    isPhotoMode = false;
+    textNavControls.style.display = "none";
+    fadeOut(photoCarousel, 30);
+    setTimeout(() => {
+      photoCarousel.style.display = "none";
+      showJokeTexts();
+    }, 500);
+  }
+}
+
+function goToPreviousPhoto() {
+  if (currentPhotoIndex > 0) {
+    currentPhotoIndex--;
+    updatePhoto();
+  }
+}
+
+// Joke Texts Logic
+let currentJokeIndex = 0;
+let isJokeMode = false;
+const jokeMessage = document.getElementById("jokeMessage");
+const jokeTexts = document.querySelectorAll("#jokeMessage .text");
+
+function showJokeTexts() {
+  isJokeMode = true;
+  msgParent.style.display = "none"; // Hide original message container
+  jokeMessage.style.display = "flex";
+  textNavControls.style.display = "flex";
+  currentJokeIndex = 0;
+
+  // Show first joke text
+  fadeIn(jokeTexts[0], 20, "block");
+  updateArrowVisibility();
+}
+
+function goToNextJoke() {
+  if (currentJokeIndex < jokeTexts.length - 1) {
+    fadeOut(jokeTexts[currentJokeIndex], 30);
+    currentJokeIndex++;
+    setTimeout(() => {
+      fadeIn(jokeTexts[currentJokeIndex], 20, "block");
+      updateArrowVisibility();
+    }, 400);
+  } else if (currentJokeIndex === jokeTexts.length - 1) {
+    // On last joke, clicking next transitions to secret message
+    textNavControls.style.display = "none";
+    fadeOut(jokeTexts[currentJokeIndex], 30);
+    setTimeout(() => {
+      jokeMessage.style.display = "none";
+      isJokeMode = false;
+      showSecretMessage();
+    }, 500);
+  }
+}
+
+function goToPreviousJoke() {
+  if (currentJokeIndex > 0) {
+    fadeOut(jokeTexts[currentJokeIndex], 30);
+    currentJokeIndex--;
+    setTimeout(() => {
+      fadeIn(jokeTexts[currentJokeIndex], 20, "block");
+      updateArrowVisibility();
+    }, 400);
+  }
+}
+
+// Click anywhere in joke section to advance
+jokeMessage.addEventListener("click", function (e) {
+  if (!e.target.closest(".text-nav-controls") && isJokeMode) {
+    goToNextJoke();
+  }
+});
+
+// Secret Message Logic
+const secretSection = document.getElementById("secretSection");
+const secretBtn = document.getElementById("secretBtn");
+const secretMessage = document.getElementById("secretMessage");
+const revisitSection = document.getElementById("revisitSection");
+const revisitBtn = document.getElementById("revisitBtn");
+
+function showSecretMessage() {
+  secretSection.style.display = "block";
+  fadeIn(secretSection, 20, "block");
+}
+
+secretBtn.addEventListener("click", function () {
+  secretBtn.style.display = "none";
+  secretMessage.style.display = "block";
+  fadeIn(secretMessage, 20, "block");
+
+  setTimeout(() => {
+    revisitSection.style.display = "block";
+    fadeIn(revisitSection, 20, "block");
+  }, 2000);
+});
+
+revisitBtn.addEventListener("click", function () {
+  location.reload();
 });
