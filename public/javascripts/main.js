@@ -44,8 +44,21 @@ const candleInstruction = document.getElementById("candleInstruction");
 const textNavControls = document.getElementById("textNavControls");
 const textNextArrow = document.getElementById("textNextArrow");
 const textBackArrow = document.getElementById("textBackArrow");
+const musicControls = document.getElementById("musicControls");
+const muteBtn = document.getElementById("muteBtn");
+const muteIcon = document.getElementById("muteIcon");
+const trackBtn = document.getElementById("trackBtn");
 
 const sound = new Audio();
+
+// Music tracks
+const tracks = [
+  { src: "audio/jazz_style.mp3", name: "Jazz" },
+  { src: "audio/hbd.mp3", name: "Birthday" },
+  { src: "audio/funny_hbd.mp3", name: "Funny" },
+];
+let currentTrackIndex = 0;
+let isMuted = false;
 
 const screenWidthCenterPos = Math.floor(window.innerWidth / 2);
 
@@ -142,16 +155,59 @@ musicButton.addEventListener("click", function () {
       setTimeout(() => {
         balloonInstruction.style.display = "block";
       }, 500);
-    }
-    sound.src = "audio/hbd.mp3";
-    sound.loop = true;
-    if (isPlaying === false) {
+      // Show music controls
+      musicControls.style.display = "flex";
+      // Start with jazz track
+      currentTrackIndex = 0;
+      sound.src = tracks[currentTrackIndex].src;
+      sound.loop = false; // Don't loop individual tracks
       sound.play();
       isPlaying = true;
     } else {
-      sound.pause();
-      isPlaying = false;
+      // Toggle play/pause
+      if (isPlaying === false) {
+        sound.play();
+        isPlaying = true;
+      } else {
+        sound.pause();
+        isPlaying = false;
+      }
     }
+  }
+});
+
+// Mute button handler
+muteBtn.addEventListener("click", function () {
+  if (isMuted) {
+    sound.muted = false;
+    isMuted = false;
+    muteIcon.textContent = "🔊";
+  } else {
+    sound.muted = true;
+    isMuted = true;
+    muteIcon.textContent = "🔇";
+  }
+});
+
+// Auto-play next track when current one ends
+sound.addEventListener("ended", function () {
+  if (isMusicClicked && isPlaying) {
+    // Move to next track
+    currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+    sound.src = tracks[currentTrackIndex].src;
+    sound.loop = false;
+    sound.play();
+  }
+});
+
+// Track switch button handler
+trackBtn.addEventListener("click", function () {
+  if (isMusicClicked && isPlaying) {
+    // Switch to next track
+    currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+    sound.src = tracks[currentTrackIndex].src;
+    sound.loop = false;
+    sound.play();
   }
 });
 
