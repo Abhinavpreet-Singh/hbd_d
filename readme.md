@@ -1,7 +1,5 @@
 # Birthday Greeting Experience
 
-![Animated birthday celebration preview](./images/demo.gif)
-
 ## Overview
 
 This repository hosts a fully animated birthday greeting built with plain HTML,
