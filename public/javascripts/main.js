@@ -587,52 +587,27 @@ function startEnd() {
  * @param {number} preCount the previous count number
  */
 function textLoop(maxCount, elementPrefix, count = 0, preCount = 0) {
-  if (count === 0) {
-    fadeIn(document.getElementById(`${elementPrefix}0`), 10, "block");
-    textNavControls.style.display = "flex";
-    currentTextIndex = 0;
-    isTextPlaying = true;
-    canAdvanceText = true;
-    updateArrowVisibility();
-    count = 1;
-  }
-  if (preCount === 0) {
-    setTimeout(function () {
-      fadeOut(document.getElementById(`${elementPrefix}0`), 50);
-      preCount = 1;
-    }, 7000);
-  }
-  setTimeout(function () {
-    // Check if user has manually advanced past this point
-    if (currentTextIndex > count) {
-      // Skip this iteration since user already advanced
-      preCount = count;
-      count++;
-      if (count < maxCount) {
-        return textLoop(maxCount, elementPrefix, count, preCount);
-      }
-      return;
-    }
+  // Initialize text mode
+  fadeIn(document.getElementById(`${elementPrefix}0`), 10, "block");
+  textNavControls.style.display = "flex";
+  currentTextIndex = 0;
+  isTextPlaying = true;
+  canAdvanceText = true;
+  updateArrowVisibility();
 
-    let text;
-    if (preCount !== count) {
-      text = document.getElementById(`${elementPrefix}${preCount}`);
-      fadeOut(text, 50);
-      preCount++;
-      return textLoop(maxCount, elementPrefix, count, preCount);
+  // Start auto-advance
+  startTextAutoAdvance();
+}
+
+// Auto-advance for texts
+let textAutoAdvanceTimer = null;
+
+function startTextAutoAdvance() {
+  clearTimeout(textAutoAdvanceTimer);
+  textAutoAdvanceTimer = setTimeout(() => {
+    if (isTextPlaying && currentTextIndex < msgText.length - 1) {
+      goToNextText();
     }
-    text = document.getElementById(`${elementPrefix}${count}`);
-    fadeIn(text, 10, "block");
-    currentTextIndex = count;
-    updateArrowVisibility();
-    preCount = count;
-    count++;
-    if (count < maxCount) {
-      return textLoop(maxCount, elementPrefix, count, preCount);
-    }
-    textNavControls.style.display = "none";
-    isTextPlaying = false;
-    return startEnd();
   }, 4000);
 }
 
@@ -667,6 +642,7 @@ function updateArrowVisibility() {
 
 function goToNextText() {
   if (isTextPlaying && currentTextIndex < msgText.length - 1) {
+    clearTimeout(textAutoAdvanceTimer);
     // Hide current text smoothly
     fadeOut(msgText[currentTextIndex], 30);
 
@@ -679,9 +655,11 @@ function goToNextText() {
       // If this is the last text, wait then end
       if (currentTextIndex >= msgText.length - 1) {
         setTimeout(() => {
-          textNavControls.style.display = "none";
           startEnd();
         }, 2000);
+      } else {
+        // Restart auto-advance for next text
+        startTextAutoAdvance();
       }
     }, 400);
   }
@@ -689,6 +667,7 @@ function goToNextText() {
 
 function goToPreviousText() {
   if (isTextPlaying && currentTextIndex > 0) {
+    clearTimeout(textAutoAdvanceTimer);
     // Hide current text smoothly
     fadeOut(msgText[currentTextIndex], 30);
 
@@ -697,6 +676,8 @@ function goToPreviousText() {
     setTimeout(() => {
       fadeIn(msgText[currentTextIndex], 20, "block");
       updateArrowVisibility();
+      // Restart auto-advance
+      startTextAutoAdvance();
     }, 400);
   }
 }
@@ -743,6 +724,21 @@ const photoCarousel = document.getElementById("photoCarousel");
 const carouselImage = document.getElementById("carouselImage");
 const photoCounter = document.getElementById("photoCounter");
 
+// Auto-advance for photos
+let photoAutoAdvanceTimer = null;
+
+function startPhotoAutoAdvance() {
+  clearTimeout(photoAutoAdvanceTimer);
+  photoAutoAdvanceTimer = setTimeout(() => {
+    if (isPhotoMode && currentPhotoIndex < photoFiles.length - 1) {
+      goToNextPhoto();
+    } else if (isPhotoMode && currentPhotoIndex === photoFiles.length - 1) {
+      // Auto-transition to jokes after last photo
+      goToNextPhoto();
+    }
+  }, 4000);
+}
+
 function showPhotoCarousel() {
   if (hasShownPhotos) return; // Prevent showing photos again
   hasShownPhotos = true;
@@ -753,6 +749,7 @@ function showPhotoCarousel() {
   currentPhotoIndex = 0; // Reset to first photo
   updatePhoto();
   updateArrowVisibility(); // Update arrow visibility for photo mode
+  startPhotoAutoAdvance(); // Start auto-advance
 }
 
 function updatePhoto() {
@@ -762,13 +759,14 @@ function updatePhoto() {
 }
 
 function goToNextPhoto() {
+  clearTimeout(photoAutoAdvanceTimer);
   if (currentPhotoIndex < photoFiles.length - 1) {
     currentPhotoIndex++;
     updatePhoto();
+    startPhotoAutoAdvance(); // Restart auto-advance
   } else {
     // Last photo reached, show joke texts
     isPhotoMode = false;
-    textNavControls.style.display = "none";
     fadeOut(photoCarousel, 30);
     setTimeout(() => {
       photoCarousel.style.display = "none";
@@ -779,8 +777,10 @@ function goToNextPhoto() {
 
 function goToPreviousPhoto() {
   if (currentPhotoIndex > 0) {
+    clearTimeout(photoAutoAdvanceTimer);
     currentPhotoIndex--;
     updatePhoto();
+    startPhotoAutoAdvance(); // Restart auto-advance
   }
 }
 
@@ -789,6 +789,18 @@ let currentJokeIndex = 0;
 let isJokeMode = false;
 const jokeMessage = document.getElementById("jokeMessage");
 const jokeTexts = document.querySelectorAll("#jokeMessage .text");
+
+// Auto-advance for jokes
+let jokeAutoAdvanceTimer = null;
+
+function startJokeAutoAdvance() {
+  clearTimeout(jokeAutoAdvanceTimer);
+  jokeAutoAdvanceTimer = setTimeout(() => {
+    if (isJokeMode) {
+      goToNextJoke();
+    }
+  }, 4000);
+}
 
 function showJokeTexts() {
   isJokeMode = true;
@@ -800,19 +812,21 @@ function showJokeTexts() {
   // Show first joke text
   fadeIn(jokeTexts[0], 20, "block");
   updateArrowVisibility();
+  startJokeAutoAdvance(); // Start auto-advance
 }
 
 function goToNextJoke() {
+  clearTimeout(jokeAutoAdvanceTimer);
   if (currentJokeIndex < jokeTexts.length - 1) {
     fadeOut(jokeTexts[currentJokeIndex], 30);
     currentJokeIndex++;
     setTimeout(() => {
       fadeIn(jokeTexts[currentJokeIndex], 20, "block");
       updateArrowVisibility();
+      startJokeAutoAdvance(); // Restart auto-advance
     }, 400);
   } else if (currentJokeIndex === jokeTexts.length - 1) {
-    // On last joke, clicking next transitions to secret message
-    textNavControls.style.display = "none";
+    // On last joke, transition to secret message
     fadeOut(jokeTexts[currentJokeIndex], 30);
     setTimeout(() => {
       jokeMessage.style.display = "none";
@@ -824,11 +838,13 @@ function goToNextJoke() {
 
 function goToPreviousJoke() {
   if (currentJokeIndex > 0) {
+    clearTimeout(jokeAutoAdvanceTimer);
     fadeOut(jokeTexts[currentJokeIndex], 30);
     currentJokeIndex--;
     setTimeout(() => {
       fadeIn(jokeTexts[currentJokeIndex], 20, "block");
       updateArrowVisibility();
+      startJokeAutoAdvance(); // Restart auto-advance
     }, 400);
   }
 }
